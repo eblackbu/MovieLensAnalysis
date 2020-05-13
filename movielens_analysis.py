@@ -113,9 +113,15 @@ class Tags:
     """
     Analyzing data from tags.csv
     """
-
     def __init__(self, path):
-        pass
+        try:
+            self.data = []
+            with open(path, "r") as tags_file:
+                tags_file.readline()
+                for line in tags_file:
+                    self.data.append([x for x in line.split(',')])  # поставить генератор
+        except IOError:
+            print(f"There is no file {path}")
 
     def most_words(self, n) -> collections.OrderedDict:
         """
@@ -123,21 +129,36 @@ class Tags:
         It is a dict where the keys are tags and the values re the number of words inside the tag.
         Sorted by numbers in descending order.
         """
-        pass
+        big_tags = [[x[2], len(x[2].split(' '))] for x in self.data]
+        big_tags = sorted(big_tags, key=lambda x: -int(x[1]))[:n]
+        return collections.OrderedDict(big_tags)
 
     def longest(self, n) -> list:
         """
         The method returns top n longest tags in terms of the number of characters.
         It is a list of the tags. Sort it by numbers in descending order.
         """
-        pass
+        big_tags = set(map(lambda x: x[2], self.data))
+        big_tags = sorted(big_tags, key=lambda x: -len(x))[:n]
+        return big_tags
 
     def most_words_and_longest(self, n) -> list:
         """
         The method returns the intersection between top n tags with most words inside and top n longest tags in terms of the number of characters.
         It is a list of the tags.
         """
-        pass
+        longest_tags = list(sorted(set(map(lambda x: x[2], self.data)), key=lambda x: -len(x)))[:n]
+        most_words_tags = list(self.most_words(n))[:n]
+        return list(set(longest_tags) & set(most_words_tags))
+
+    def most_popular(self, n) -> collections.OrderedDict:
+        """
+        The method returns the most popular tags.
+        It is a dict where the keys are tags and the values are the counts.
+        Sorted by counts in descending order
+        """
+        popular_tags = collections.Counter(map(lambda x: x[2], self.data))
+        return collections.OrderedDict(popular_tags.most_common(n))
 
     def tags_with(self, word) -> list:
         """
@@ -145,7 +166,9 @@ class Tags:
         It is a list of the tags.
         Sorted by tag name alphabetically.
         """
-        pass
+        tags_with_word = list(map(lambda x: x[2], filter(lambda x: word in x[2], self.data)))
+        tags_with_word.sort()
+        return list(set(tags_with_word))
 
 
 class Movies:
@@ -232,13 +255,16 @@ class Links:
                                          attrs={"class": "inline"}).next_sibling)
                 except AttributeError:
                     gross = '0'
-                runtime = details.find("h4", text=re.compile('Runtime:'), attrs={"class": "inline"}).findParent().find(
-                    "time").text
+                try:
+                    runtime = details.find("h4", text=re.compile('Runtime:'), attrs={"class": "inline"}).findParent().find(
+                        "time").text
+                except AttributeError:
+                    runtime = "1 min"
                 self.data.append([movie_id,
                                   title[:title.find('\xa0')],
                                   director[director.rfind('\n'):].strip(),
-                                  budget[budget.find('$') + 1:].replace(',', '').strip(),
-                                  gross[gross.find('$') + 1:].replace(',', '').strip(),
+                                  re.search(r'(\d+)', budget.replace(',', '')).group(1),
+                                  re.search(r'(\d+)', gross.replace(',', '')).group(1),
                                   runtime])
         except IOError:
             print(f"There is no file {path}")
@@ -306,11 +332,22 @@ if __name__ == "__main__":
     print(u.top_controversial_valuers(5))
     """
 
+    """
+    test = Tags("test_tags.csv")
+    print(test.most_words(10))
+    print(test.longest(10))
+    print(test.most_words_and_longest(10))
+    print(test.most_popular(10))
+    print(test.tags_with("Osc"))
+    """
+
+    """
     test = Movies("movies.csv")
-    #print(test.dist_by_release())
+    print(test.dist_by_release())
     print(test.dist_by_genres())
     print(test.most_genres(5))
     """
+
     test = Links("test_links.csv")
     print(test.get_imdb())
     print(test.top_directors(5))
@@ -318,4 +355,3 @@ if __name__ == "__main__":
     print(test.most_profitable(5))
     print(test.longest(5))
     print(test.top_cost_per_minute(5))
-    """
