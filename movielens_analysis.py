@@ -24,32 +24,32 @@ class Ratings:
         def __init__(self, outer):
             self.outer = outer
 
-        def dist_by_year(self):
+        def dist_by_year(self) -> collections.OrderedDict:
             """
             This method returns a dict where the keys are years and the values are counts.
             Sorted by years in ascending order.
             """
             ratings_by_year = collections.Counter([int(record[3]) // 31536000 + 1970 for record in self.outer.data])
-            return dict(ratings_by_year.most_common())
+            return collections.OrderedDict(ratings_by_year.most_common())
 
-        def dist_by_rating(self):
+        def dist_by_rating(self) -> collections.OrderedDict:
             """
             The method returns a dict where the keys are ratings and the values are counts.
             Sorted by ratings in ascending order.
             """
             ratings_distribution = collections.Counter([record[2] for record in self.outer.data])
-            return dict(ratings_distribution)
+            return collections.OrderedDict(ratings_distribution)
 
-        def top_by_num_ratings(self, n):
+        def top_by_num_ratings(self, n) -> collections.OrderedDict:
             """
             The method returns top n movies by the number of ratings.
             It is a dict where the keys are movie and the values are numbers.
             Sorted by numbers in descending order.
             """
             top_movies = collections.Counter([record[1] for record in self.outer.data])
-            return dict(top_movies.most_common(n))
+            return collections.OrderedDict(top_movies.most_common(n))
 
-        def top_by_ratings(self, n, metric="average"):
+        def top_by_ratings(self, n, metric="average") -> collections.OrderedDict:
             """
             The method returns top n movies by the average or median of the ratings.
             It is a dict where the keys are movie titles and the values are metric values.
@@ -57,7 +57,7 @@ class Ratings:
             """
             pass
 
-        def top_controversial(self, n):
+        def top_controversial(self, n) -> collections.OrderedDict:
             """
             The method returns top n movies by the variance of the ratings.
             It is a dict where the keys are movie titles and the values are variances.
@@ -71,21 +71,21 @@ class Ratings:
 
             set_movies = set(map(lambda x: x[1], self.outer.data))
             top_movies = collections.Counter({movie: get_variance(movie) for movie in set_movies})
-            return dict(top_movies.most_common(n))
+            return collections.OrderedDict(top_movies.most_common(n))
 
     class Users:
         def __init__(self, outer):
             self.outer = outer
 
-        def top_valuers(self):
+        def top_valuers(self) -> collections.OrderedDict:
             """
             The method returns the distribution of users by the number of ratings made by them.
             It is a dict where the keys are users and the values are number of ratings
             """
             valuers = collections.Counter(map(lambda x: x[0], self.outer.data))
-            return dict(valuers)
+            return collections.OrderedDict(valuers)
 
-        def valuers_with_ratings(self, metric="average"):
+        def valuers_with_ratings(self, metric="average") -> collections.OrderedDict:
             """
             The method returns the distribution of users by average or median ratings made by them.
             It is a dict where the keys are users and the values are metric values.
@@ -93,7 +93,7 @@ class Ratings:
 
             pass
 
-        def top_controversial_valuers(self, n):
+        def top_controversial_valuers(self, n) -> collections.OrderedDict:
             """
             The method returns top n users with the biggest variance of their ratings.
             It is a dict where the keys are users and the values are variances
@@ -106,7 +106,7 @@ class Ratings:
 
             set_users = set(map(lambda x: x[0], self.outer.data))
             top_users = collections.Counter({user: get_variance(user) for user in set_users})
-            return dict(top_users.most_common(n))
+            return collections.OrderedDict(top_users.most_common(n))
 
 
 class Tags:
@@ -117,7 +117,7 @@ class Tags:
     def __init__(self, path):
         pass
 
-    def most_words(self, ):
+    def most_words(self, n) -> collections.OrderedDict:
         """
         The method returns top n tags with words inside.
         It is a dict where the keys are tags and the values re the number of words inside the tag.
@@ -125,21 +125,21 @@ class Tags:
         """
         pass
 
-    def longest(self, n):
+    def longest(self, n) -> list:
         """
         The method returns top n longest tags in terms of the number of characters.
         It is a list of the tags. Sort it by numbers in descending order.
         """
         pass
 
-    def most_words_and_longest(self, n):
+    def most_words_and_longest(self, n) -> list:
         """
         The method returns the intersection between top n tags with most words inside and top n longest tags in terms of the number of characters.
-        It is a liist of the tags.
+        It is a list of the tags.
         """
         pass
 
-    def tags_with(self, word):
+    def tags_with(self, word) -> list:
         """
         The method returns all the tags that include the word given as the argument.
         It is a list of the tags.
@@ -169,16 +169,17 @@ class Movies:
         release_years = collections.Counter(map(lambda x: re.search(r'\(\d{4}\)', x[1]), self.data))
         return dict(release_years.most_common(len(release_years)))
 
-    def dist_by_genres(self):
+    def dist_by_genres(self) -> collections.OrderedDict:
         """
         The method returns a dict where the keys are genres and the values are counts.
         Sorted by counts in descending order.
         """
         pass
 
-    def most_genres(self, n):
+    def most_genres(self, n) -> collections.OrderedDict:
         """
-        The method returns a dict with top n movies where the keys are movie titles and the values are the number of genres of the movie. Sort it by numbers descendingly.
+        The method returns a dict with top n movies where the keys are movie titles and the values are the number of genres of the movie.
+        Sort it by numbers in descending order.
         """
         pass
 
@@ -229,54 +230,54 @@ class Links:
         except IOError:
             print("file error")
 
-    def get_imdb(self):
+    def get_imdb(self) -> list:
         """
         The method returns a lst of lists with fields:
         [movieId, movie Title, Director, Budget, Cumulative Worldwide Gross, Runtime]
         Sorted by movieId
         """
-        self.data.sort(key=lambda x:x[0])
+        self.data.sort(key=lambda x: x[0])
         return self.data
 
-    def top_directors(self, n):
+    def top_directors(self, n) -> collections.OrderedDict:
         """
         The method returns a dict where the keys are directors and the values are numbers movies created by them
         Sorted by numbers in descending order.
         """
         directors = collections.Counter(map(lambda x: x[2], self.data))
-        return dict(directors.most_common(n))
+        return collections.OrderedDict(directors.most_common(n))
 
-    def most_expensive(self, n):
+    def most_expensive(self, n) -> collections.OrderedDict:
         """
         The method returns a dict with top n movies where the keys are movie titles and the values are their budgets.
         Sorted by budgets in descending order.
         """
-        budgets = {x[1]: x[3] for x in sorted(self.data, key=lambda x: -int(x[3]))[:n]}
+        budgets = collections.OrderedDict({x[1]: x[3] for x in sorted(self.data, key=lambda x: -int(x[3]))[:n]})
         return budgets
 
-    def most_profitable(self, n):
+    def most_profitable(self, n) -> collections.OrderedDict:
         """
         The method returns a dict with top n movies where the keys are movie titles and the values are their budgets.
         Sorted by budgets in descending order.
         """
-        profits = {x[1]: int(x[4]) - int(x[3]) for x in sorted(self.data, key=lambda x: int(x[3])-int(x[4]))[:n]}
+        profits = collections.OrderedDict({x[1]: int(x[4]) - int(x[3]) for x in sorted(self.data, key=lambda x: int(x[3])-int(x[4]))[:n]})
         return profits
 
-    def longest(self, n):
+    def longest(self, n) -> collections.OrderedDict:
         """
         The method returns a dict with top n movies where the keys are movie titles and the values are their runtime.
         Sorted by runtime in descending order.
         """
         a = self.data[0][5][:self.data[0][5].find(' ')]
-        runtimes = {x[1]: x[5] for x in sorted(self.data, key=lambda x: -int(x[5][:-4]))[:n]}
+        runtimes = collections.OrderedDict({x[1]: x[5] for x in sorted(self.data, key=lambda x: -int(x[5][:-4]))[:n]})
         return runtimes
 
-    def top_cost_per_minute(self, n):
+    def top_cost_per_minute(self, n) -> collections.OrderedDict:
         """
         The method returns a dict with top n movies where the keys are movie titles and the values are the budgets divided by their runtime.
         Sorted by the division in descending order.
         """
-        costs = {x[1]: int(x[3]) / int(x[5][:-4]) for x in sorted(self.data, key=lambda x: -(int(x[3]) / int(x[5][:-4])))[:n]}
+        costs = collections.OrderedDict({x[1]: int(x[3]) / int(x[5][:-4]) for x in sorted(self.data, key=lambda x: -(int(x[3]) / int(x[5][:-4])))[:n]})
         return costs
 
 
