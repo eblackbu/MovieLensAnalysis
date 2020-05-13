@@ -3,17 +3,7 @@ import sys
 import collections
 import requests
 import bs4
-
-class AnalyzingFile(object):
-	def __init__(self, spath):
-		self.data = []
-		for line in self.get_generator_list_lines(spath):
-			self.data.append([x for x in line.split(',')]) # todo: переделать на регулярку
-
-	def get_generator_list_lines(self, file_name):
-		with open(file_name, 'r') as f:
-			for line in f:
-				yield line
+import re
 
 class Ratings(object):
 	"""
@@ -27,9 +17,10 @@ class Ratings(object):
 				print(ratings_file)
 				ratings_file.readline()
 				for line in ratings_file:
-					self.data.append([x for x in line.split(',')]) #поставить генератор
-		except Exception:
+					self.data.append([x for x in line.split(',')])
+		except IOError:
 			print(f"There is no file {spath}")
+		except Exception:
 			print(sys.info())
 
 	class Movies:
@@ -68,7 +59,7 @@ class Ratings(object):
 			It is a dict where the keys are movie titles and the values are metric values.
 			Sorted by metric descendingly.
 			"""
-			return {}
+			return collections.OrderedDict()
 
 
 		def top_controversial(self, n):
@@ -103,7 +94,7 @@ class Ratings(object):
 			The method returns the distribution of users by average or median ratings made by them.
 			It is a dict where the keys are users and the values are metric values.
 			"""
-			return {}
+			return collections.OrderedDict()
 
 		def top_controversial_valuers(self, n):
 			"""
@@ -125,9 +116,17 @@ class Tags:
 	"""
 	def __init__(self, path):
 		try:
-			self.data = AnalyzingFile(path).data
+			self.data = []
+			print(os.path.exists("ratings.csv"))
+			with open(spath, "r") as ratings_file:
+				print(ratings_file)
+				ratings_file.readline()
+				for line in ratings_file:
+					self.data.append([x for x in line.split(',')])
 		except IOError:
-			print(f"There is no file {path}")
+			print(f"There is no file {spath}")
+		except Exception:
+			print(sys.info())
 
 	def most_words(self, n):
 		"""
@@ -181,7 +180,39 @@ class Movies:
 	"""
 	Analyzing data from movies.csv
 	"""
+
+	def get_replaced_line(self, line, sep_old, sep_new, beg_count, end_count):
+		words = line.split(sep_old)
+		l_new = ""
+		for w_count in range(len(words)):
+			l_new += words[w_count]
+			if w_count != len(words) - 1:
+				if (w_count < beg_count) or (w_count + 1 >= len(words) - end_count):
+					l_new += sep_new
+				else:
+					l_new += sep_old
+		return l_new
+
+	def get_generator_list_lines(self, file_name):
+		with open(file_name, 'r') as f:
+			for line in f:
+				yield line
+
 	def __init__(self, path):
+		try:
+			self.data = []
+			for line in self.get_generator_list_lines(path):
+				ss = self.get_replaced_line(line, ',', '\t', 1, 1)
+				new_elem = list(map(lambda x: x, ss.split('\t')))
+				new_elem[2] = list(map(lambda x: x, new_elem[2].split('|')))
+				self.data.append(new_elem)
+		except IOError:
+			print(f"There is no file {path}")
+		except Exception:
+			print(sys.int_info)
+
+		"""
+
 		try:
 			with open(path, "r") as tags_file:
 				tags_data = []
@@ -190,9 +221,7 @@ class Movies:
 					new_elem = list(map(lambda x: x, line.split(',')))
 					new_elem[2] = list(map(lambda x: x, new_elem[2].split('|')))
 					tags_data.append(new_elem)
-		except Exception:
-			print(f"There is no file {path}")
-
+		"""
 
 	def dist_by_release(self):
 		"""
@@ -346,13 +375,13 @@ if __name__ == "__main__":
 	print(test.tags_with("Osc"))
 	"""
 
-	"""
+
 	test = Movies("movies.csv")
 	print(test.dist_by_release())
 	print(test.dist_by_genres())
 	print(test.most_genres(5))
-	"""
 
+	"""
 	test = Links("test_links.csv")
 	print(test.get_imdb())
 	print(test.top_directors(5))
@@ -360,3 +389,4 @@ if __name__ == "__main__":
 	print(test.most_profitable(5))
 	print(test.longest(5))
 	print(test.top_cost_per_minute(5))
+	"""

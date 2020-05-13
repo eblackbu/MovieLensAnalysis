@@ -5,8 +5,8 @@ from movielens_analysis import Ratings, Tags, Movies, Links
 # to check if the methods return the correct data types
 @pytest.mark.parametrize('ratings_file_name', ['ratings.csv'])
 @pytest.mark.parametrize('n', [10])
-@pytest.mark.parametrize('ret_type', [[dict, dict, dict, dict, dict, dict, dict, dict]])
-#@pytest.mark.parametrize('ret_type', [[OrderedDict, OrderedDict, OrderedDict, OrderedDict, OrderedDict, OrderedDict, OrderedDict, OrderedDict]])
+#@pytest.mark.parametrize('ret_type', [[dict, dict, dict, dict, dict, dict, dict, dict]])
+@pytest.mark.parametrize('ret_type', [[OrderedDict, OrderedDict, OrderedDict, OrderedDict, OrderedDict, OrderedDict, OrderedDict, OrderedDict]])
 def test_ratings_class_type_error(ratings_file_name, n, ret_type):
 	parent_class = Ratings(ratings_file_name)
 	movies_class = parent_class.Movies(parent_class)
@@ -25,22 +25,23 @@ def test_ratings_class_type_error(ratings_file_name, n, ret_type):
 
 @pytest.mark.parametrize('tags_file_name', ['tags.csv'])
 @pytest.mark.parametrize('n', [10])
-@pytest.mark.parametrize('ret_type', [[dict, list, list, list]])
-#@pytest.mark.parametrize('ret_type', [[OrderedDict, OrderedDict, OrderedDict, OrderedDict]])
+#@pytest.mark.parametrize('ret_type', [[dict, list, list, list]])
+@pytest.mark.parametrize('ret_type', [[OrderedDict, list, list, OrderedDict, list]])
 def test_tags_class_type_error(tags_file_name, n, ret_type):
 	parent_class = Tags(tags_file_name)
 	method_ret_list = []
 	method_ret_list.append(type(parent_class.most_words(n)))
 	method_ret_list.append(type(parent_class.longest(n)))
 	method_ret_list.append(type(parent_class.most_words_and_longest(n)))
+	method_ret_list.append(type(parent_class.most_popular(n)))
 	method_ret_list.append(type(parent_class.tags_with(n)))
 	print(method_ret_list)
 	assert len(set(method_ret_list) ^ set(ret_type)) == 0
 
 @pytest.mark.parametrize('movies_file_name', ['movies.csv'])
 @pytest.mark.parametrize('n', [10])
-@pytest.mark.parametrize('ret_type', [[dict, dict, dict]])
-#@pytest.mark.parametrize('ret_type', [[OrderedDict, OrderedDict, OrderedDict]])
+#@pytest.mark.parametrize('ret_type', [[dict, dict, dict]])
+@pytest.mark.parametrize('ret_type', [[OrderedDict, OrderedDict, OrderedDict]])
 def test_movies_class_type_error(movies_file_name, n, ret_type):
 	movies_class = Movies(movies_file_name)
 	method_ret_list = []
