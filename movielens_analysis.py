@@ -23,7 +23,7 @@ class Ratings(object):
 		except Exception:
 			print(sys.info())
 
-	class Movies:
+	class Movies(object):
 		def __init__(self, outer):
 			self.outer = outer
 
@@ -77,7 +77,7 @@ class Ratings(object):
 			top_movies = collections.Counter({movie: get_variance(movie) for movie in set_movies})
 			return collections.OrderedDict(top_movies.most_common(n))
 
-	class Users:
+	class Users(object):
 		def __init__(self, outer):
 			self.outer = outer
 
@@ -110,7 +110,7 @@ class Ratings(object):
 			top_users = collections.Counter({user: get_variance(user) for user in set_users})
 			return collections.OrderedDict(top_users.most_common(n))
 
-class Tags:
+class Tags(object):
 	"""
 	Analyzing data from tags.csv
 	"""
@@ -118,13 +118,13 @@ class Tags:
 		try:
 			self.data = []
 			print(os.path.exists("ratings.csv"))
-			with open(spath, "r") as ratings_file:
+			with open(path, "r") as ratings_file:
 				print(ratings_file)
 				ratings_file.readline()
 				for line in ratings_file:
 					self.data.append([x for x in line.split(',')])
 		except IOError:
-			print(f"There is no file {spath}")
+			print(f"There is no file {path}")
 		except Exception:
 			print(sys.info())
 
@@ -354,39 +354,57 @@ class Links:
 
 
 if __name__ == "__main__":
+
 	"""
-	test = Ratings("test.csv")
+	Проверено, работает
+	test = Ratings("ratings.csv")
 	m = test.Movies(test)
 	u = test.Users(test)
-	print(m.dist_by_year())
-	print(m.dist_by_rating())
-	print(m.top_by_num_ratings(5))
-	print(m.top_controversial(5))
-	print(u.top_valuers())
-	print(u.top_controversial_valuers(5))
+	print('Ratings:')
+	print('\tdist_by_year:         {}, type is {}'.format(m.dist_by_year(), type(m.dist_by_year()).__name__))
+	print('\tdist_by_rating:       {}, type is {}'.format(m.dist_by_rating(), type(m.dist_by_rating()).__name__))
+	print('\ttop_by_num_of_ratings:{}, type is {}'.format(m.top_by_num_of_ratings(5), type(m.top_by_num_of_ratings(5)).__name__))
+	print('\ttop_by_of_ratings:    {}, type is {}'.format(m.top_by_ratings(5), type(m.top_by_ratings(5)).__name__))
+	print('\ttop_controversial:    {}, type is {}'.format(m.top_controversial(5), type(m.top_controversial(5)).__name__))
+	print('\ttop_valuers:          {}, type is {}'.format(u.top_valuers(), type(u.top_valuers()).__name__))
+	print('\tvaluers_with_ratings: {}, type is {}'.format(u.valuers_with_ratings(), type(u.valuers_with_ratings()).__name__))
+	print('\ttop_controversial_valuers: {}, type is {}'.format(u.top_controversial_valuers(5), type(u.top_controversial_valuers(5)).__name__))
 	"""
 
 	"""
-	test = Tags("test_tags.csv")
-	print(test.most_words(10))
-	print(test.longest(10))
-	print(test.most_words_and_longest(10))
-	print(test.most_popular(10))
-	print(test.tags_with("Osc"))
+	Проверено, работает
+	test = Tags("tags.csv")
+	print('Tags:')
+	print('\tmost_words:             {}, type is {}'.format(test.most_words(10), type(test.most_words(10)).__name__))
+	print('\tlongest:                {}, type is {}'.format(test.longest(10), type(test.longest(10)).__name__))
+	print('\tmost_words_and_longest: {}, type is {}'.format(test.most_words_and_longest(10), type(test.most_words_and_longest(10)).__name__))
+	print('\tmost_popular:           {}, type is {}'.format(test.most_popular(10), type(test.most_popular(10)).__name__))
+	print('\ttags_with:              {}, type is {}'.format(test.tags_with('Osc'), type(test.tags_with("Osc")).__name__))
 	"""
 
+	"""
+	Не работает:
+	release_years = collections.Counter(map(lambda x: re.search(r'\((\d{4})\)', x[1]).group(1), self.data))
+	AttributeError: 'NoneType' object has no attribute 'group'
 
 	test = Movies("movies.csv")
-	print(test.dist_by_release())
-	print(test.dist_by_genres())
-	print(test.most_genres(5))
+	print('Movies:')
+	print('\tdist_by_release:        {}, type is {}'.format(test.dist_by_release(), type(test.dist_by_release()).__name__))
+	print('\tdist_by_genres:         {}, type is {}'.format(test.dist_by_genres(), type(test.dist_by_genres()).__name__))
+	print('\tmost_genres:            {}, type is {}'.format(test.most_genres(5), type(test.most_genres(5)).__name__))
+	"""
 
 	"""
-	test = Links("test_links.csv")
-	print(test.get_imdb())
-	print(test.top_directors(5))
-	print(test.most_expensive(5))
-	print(test.most_profitable(5))
-	print(test.longest(5))
-	print(test.top_cost_per_minute(5))
+	Не работает:
+	title = soup.find("div", attrs={"class": "title_wrapper"}).find("h1").text
+	AttributeError: 'NoneType' object has no attribute 'find'
+
+	test = Links("links.csv")
+	print('Movies:')
+	print('\tget_imdb:            {}, type is {}'.format(test.get_imdb(), type(test.get_imdb()).__name__))
+	print('\ttop_directors:       {}, type is {}'.format(test.top_directors(5), type(test.top_directors(5)).__name__))
+	print('\tmost_expensive:      {}, type is {}'.format(test.most_expensive(5), type(test.most_expensive(5)).__name__))
+	print('\tmost_profitable:     {}, type is {}'.format(test.most_profitable(5), type(test.most_profitable(5)).__name__))
+	print('\tlongest:             {}, type is {}'.format(test.longest(5), type(test.longest(5)).__name__))
+	print('\ttop_cost_per_minute: {}, type is {}'.format(test.top_cost_per_minute(5), type(test.top_cost_per_minute(5)).__name__))
 	"""

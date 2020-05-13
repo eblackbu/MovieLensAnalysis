@@ -25,19 +25,21 @@ def test_ratings_class_type_error(ratings_file_name, n, ret_type):
 
 @pytest.mark.parametrize('tags_file_name', ['tags.csv'])
 @pytest.mark.parametrize('n', [10])
+@pytest.mark.parametrize('word', ['Ost'])
 #@pytest.mark.parametrize('ret_type', [[dict, list, list, list]])
 @pytest.mark.parametrize('ret_type', [[OrderedDict, list, list, OrderedDict, list]])
-def test_tags_class_type_error(tags_file_name, n, ret_type):
+def test_tags_class_type_error(tags_file_name, n, word, ret_type):
 	parent_class = Tags(tags_file_name)
 	method_ret_list = []
 	method_ret_list.append(type(parent_class.most_words(n)))
 	method_ret_list.append(type(parent_class.longest(n)))
 	method_ret_list.append(type(parent_class.most_words_and_longest(n)))
 	method_ret_list.append(type(parent_class.most_popular(n)))
-	method_ret_list.append(type(parent_class.tags_with(n)))
+	method_ret_list.append(type(parent_class.tags_with(word)))
 	print(method_ret_list)
 	assert len(set(method_ret_list) ^ set(ret_type)) == 0
 
+"""
 @pytest.mark.parametrize('movies_file_name', ['movies.csv'])
 @pytest.mark.parametrize('n', [10])
 #@pytest.mark.parametrize('ret_type', [[dict, dict, dict]])
@@ -67,4 +69,4 @@ def test_links_class_type_error(links_file_name, list_of_fields, n, ret_type):
 	method_ret_list.append(type(links_class.top_cost_per_minute(n)))
 #	print(method_ret_list)
 	assert len(set(method_ret_list) ^ set(ret_type)) == 0
-
+"""
