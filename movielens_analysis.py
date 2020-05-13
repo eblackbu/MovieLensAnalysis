@@ -40,7 +40,7 @@ class Ratings:
             ratings_distribution = collections.Counter([record[2] for record in self.outer.data])
             return collections.OrderedDict(ratings_distribution)
 
-        def top_by_num_ratings(self, n) -> collections.OrderedDict:
+        def top_by_num_of_ratings(self, n) -> collections.OrderedDict:
             """
             The method returns top n movies by the number of ratings.
             It is a dict where the keys are movie and the values are numbers.
@@ -159,29 +159,42 @@ class Movies:
                 self.data = []
                 tags_file.readline()
                 for line in tags_file:
-                    new_elem = list(map(lambda x: x, line.split(',')))
+                    new_elem = [line[:line.index(',')], line[line.index(',') + 1:line.rindex(',')], line[line.rindex(',') + 1:]]
                     new_elem[2] = list(map(lambda x: x, new_elem[2][:-1].split('|')))
                     self.data.append(new_elem)
         except IOError:
-            print("file error")
+            print(f"There is no file {path}")
 
-    def dist_by_release(self):
-        release_years = collections.Counter(map(lambda x: re.search(r'\(\d{4}\)', x[1]), self.data))
-        return dict(release_years.most_common(len(release_years)))
+    def dist_by_release(self) -> collections.OrderedDict:
+        """
+        The method returns a dict where the keys are years and the values are counts.
+        Sorted by counts in descending order.
+        """
+        # TODO где то в середине непонятные фильмы без указания года, крашится
+        release_years = collections.Counter(map(lambda x: re.search(r'\((\d{4})\)', x[1]).group(1), self.data))
+        return collections.OrderedDict(release_years.most_common(len(release_years)))
 
     def dist_by_genres(self) -> collections.OrderedDict:
         """
         The method returns a dict where the keys are genres and the values are counts.
         Sorted by counts in descending order.
         """
-        pass
+        genres = {}
+        for record in self.data:
+            for genre in record[2]:
+                genres[genre] = genres.setdefault(genre, 0) + 1
+        tmp_genres = [[x, genres[x]] for x in genres]
+        tmp_genres.sort(key=lambda x: -int(x[1]))
+        return collections.OrderedDict(tmp_genres)
 
     def most_genres(self, n) -> collections.OrderedDict:
         """
         The method returns a dict with top n movies where the keys are movie titles and the values are the number of genres of the movie.
         Sort it by numbers in descending order.
         """
-        pass
+        movies = [[x[1], len(x[2])] for x in self.data]
+        movies = sorted(movies, key=lambda elem: -int(elem[1]))[:n]
+        return collections.OrderedDict(movies)
 
 
 class Links:
@@ -228,7 +241,7 @@ class Links:
                                   gross[gross.find('$') + 1:].replace(',', '').strip(),
                                   runtime])
         except IOError:
-            print("file error")
+            print(f"There is no file {path}")
 
     def get_imdb(self) -> list:
         """
@@ -268,7 +281,6 @@ class Links:
         The method returns a dict with top n movies where the keys are movie titles and the values are their runtime.
         Sorted by runtime in descending order.
         """
-        a = self.data[0][5][:self.data[0][5].find(' ')]
         runtimes = collections.OrderedDict({x[1]: x[5] for x in sorted(self.data, key=lambda x: -int(x[5][:-4]))[:n]})
         return runtimes
 
@@ -294,11 +306,16 @@ if __name__ == "__main__":
     print(u.top_controversial_valuers(5))
     """
 
+    test = Movies("movies.csv")
+    #print(test.dist_by_release())
+    print(test.dist_by_genres())
+    print(test.most_genres(5))
+    """
     test = Links("test_links.csv")
-    #print(test.get_imdb())
-    #print(test.top_directors(5))
+    print(test.get_imdb())
+    print(test.top_directors(5))
     print(test.most_expensive(5))
     print(test.most_profitable(5))
     print(test.longest(5))
     print(test.top_cost_per_minute(5))
-
+    """
