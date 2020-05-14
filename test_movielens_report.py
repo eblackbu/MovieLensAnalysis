@@ -4,7 +4,7 @@ from movielens_analysis import Ratings, Tags, Movies, Links
 
 # to check if the methods return the correct data types
 # -----------------------------------------------------
-
+"""
 @pytest.mark.parametrize('ratings_file_name', ['ratings.csv'])
 @pytest.mark.parametrize('n', [10])
 #@pytest.mark.parametrize('ret_type', [[dict, dict, dict, dict, dict, dict, dict, dict]])
@@ -72,7 +72,7 @@ def test_links_class_type_error(links_file_name, list_of_fields, n, ret_type):
 	method_ret_list.append(type(links_class.top_cost_per_minute(n)))
 #	print(method_ret_list)
 	assert len(set(method_ret_list) ^ set(ret_type)) == 0
-
+"""
 
 # to check if the returned values are sorted
 # -----------------------------------------------------
@@ -81,7 +81,9 @@ def check_sort_data(data_list, sort_type=1, data_type=1):
 	if len(data_list) == 0:
 		return True
 	value_prev = data_list[0]
+	print(value_prev)
 	for value in data_list:
+		print(value)
 		if value_prev > value and sort_type == 1 or \
 			value_prev < value and sort_type != 1:
 			return False
@@ -99,7 +101,7 @@ def check_sort_data_by_len(data_list, sort_type=1):
 		value_prev = len(word)
 	return True
 
-
+"""
 @pytest.mark.parametrize('ratings_file_name', ['ratings.csv'])
 @pytest.mark.parametrize('n', [10])
 def test_ratings_class_sorted_error(ratings_file_name, n):
@@ -144,15 +146,16 @@ def test_movies_class_sorted_error(movies_file_name, n):
 	if not check_sort_data(list(movies_class.most_genres(n).values()), sort_type=2):
 		assert False
 	assert True
-
+"""
 @pytest.mark.parametrize('links_file_name', ['links.csv'])
 @pytest.mark.parametrize('n', [10])
 @pytest.mark.parametrize('list_of_fields', [['', '', '' '',]])
 def test_movies_class_sorted_error(links_file_name, n, list_of_fields):
 	links_class = Links(links_file_name)
 	# todo: get_imdb() возвращает список списков, нужно сортировать по первому подэлементу - проверить!!!
-	if not check_sort_data(links_class.get_imdb(), sort_type=2):
+	if not check_sort_data(links_class.get_imdb()):
 		assert False
+	"""
 	if not check_sort_data_by_len(list(links_class.top_directors(n).values()), sort_type=2):
 		assert False
 	if not check_sort_data(list(links_class.most_expensive(n).values()), sort_type=2):
@@ -163,8 +166,9 @@ def test_movies_class_sorted_error(links_file_name, n, list_of_fields):
 		assert False
 	if not check_sort_data(list(links_class.top_cost_per_minute(n).values()), sort_type=2):
 		assert False
+	"""
 	assert True
-
+"""
 # to check if the list are corrected
 # -----------------------------------------------------
 
@@ -174,6 +178,8 @@ def check_correct_data_type(data_list, data_type):
 	if len(data_list) == 0:
 		return True
 	for value in data_list:
+		print(value)
+		print(isinstance(value, data_type))
 		if not isinstance(value, data_type):
 			return False
 	return True
@@ -183,9 +189,9 @@ def check_correct_data_type(data_list, data_type):
 @pytest.mark.parametrize('word', ['Osc'])
 def test_tags_class_correct_list_error(tags_file_name, n, word):
 	tags_class = Tags(tags_file_name)
-	if not check_correct_data_type(tags_class.longest(n), int):
+	if not check_correct_data_type(tags_class.longest(n), str):
 		assert False
-	if not check_correct_data_type(tags_class.most_words_and_longest(n), int):
+	if not check_correct_data_type(tags_class.most_words_and_longest(n), str):
 		assert False
 	if not check_correct_data_type(tags_class.tags_with(word), str):
 		assert False
@@ -194,9 +200,10 @@ def test_tags_class_correct_list_error(tags_file_name, n, word):
 @pytest.mark.parametrize('links_file_name', ['links.csv'])
 @pytest.mark.parametrize('n', [10])
 @pytest.mark.parametrize('list_of_fields', [['', '', '' '',]])
-def test_movies_class_correct_list_error(links_file_name, n, list_of_fields):
+def test_links_class_correct_list_error(links_file_name, n, list_of_fields):
 	links_class = Links(links_file_name)
-	if not check_sort_data(links_class.get_imdb(), list):
+	if not check_correct_data_type(links_class.get_imdb(), list):
 		assert False
 
 	assert True
+"""
