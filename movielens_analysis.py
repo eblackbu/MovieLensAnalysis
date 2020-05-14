@@ -10,30 +10,50 @@ class Ratings(object):
     """
     Analyzing data from ratings.csv
     """
+
     def __init__(self, spath):
+
+        def get_generator_list_lines(file_name):
+            with open(file_name, 'r') as f:
+                f.readline()
+                for line in f:
+                    yield line
+
         try:
             self.data = []
-            print(os.path.exists("ratings.csv"))
-            with open(spath, "r") as ratings_file:
-                print(ratings_file)
-                ratings_file.readline()
-                for line in ratings_file:
-                    self.data.append([x for x in line.split(',')])
+            print(os.path.exists(spath))
+            for line in get_generator_list_lines(spath):
+                self.data.append([x for x in line.split(',')])
         except IOError:
             print(f"There is no file {spath}")
         except Exception:
             print(sys.info())
 
     class Movies(object):
-        def __init__(self, outer):
-            self.outer = outer
+        def __init__(self, path, ratings):
+
+            def get_generator_list_lines(file_name):
+                with open(file_name, 'r') as f:
+                    f.readline()
+                    for line in f:
+                        yield line
+
+            self.ratings = ratings
+            try:
+                self.movies = {}
+                for line in get_generator_list_lines(path):
+                    self.movies[line[:line.index(',')]] = line[line.index(',') + 1:line.rindex(',')]
+            except IOError:
+                print(f"There is no file {path}")
+            except Exception:
+                print(sys.int_info)
 
         def dist_by_year(self):
             """
             This method returns a dict where the keys are years and the values are counts.
             Sorted by years ascendigly.
             """
-            ratings_by_year = collections.Counter([int(record[3]) // 31536000 + 1970 for record in self.outer.data])
+            ratings_by_year = collections.Counter([int(record[3]) // 31536000 + 1970 for record in self.ratings.data])
             return collections.OrderedDict(ratings_by_year.most_common())
 
         def dist_by_rating(self):
@@ -41,17 +61,18 @@ class Ratings(object):
             The method returns a dict where the keys are ratings and the values are counts.
             Sorted by ratings ascendingly.
             """
-            ratings_distribution = collections.Counter([record[2] for record in self.outer.data])
-            return collections.OrderedDict(ratings_distribution)
+            ratings_distribution = collections.Counter([record[2] for record in self.ratings.data]).most_common()
+            return collections.OrderedDict(reversed(ratings_distribution))
 
         def top_by_num_of_ratings(self, n):
             """
             The method returns top n movies by the number of ratings.
-            It is a dict where the keys are movie and the values are numbers.
+            It is a dict where the keys are movie titles and the values are numbers.
             Sorted by numbers descendingly.
             """
-            top_movies = collections.Counter([record[1] for record in self.outer.data])
-            return collections.OrderedDict(top_movies.most_common(n))
+            top_movies = collections.Counter([record[1] for record in self.ratings.data]).most_common(n)
+            top_movies = collections.OrderedDict(map(lambda x: (self.movies[x[0]], x[1]), top_movies))
+            return collections.OrderedDict(top_movies)
 
         def top_by_ratings(self, n, metric="average"):
             """
@@ -59,7 +80,25 @@ class Ratings(object):
             It is a dict where the keys are movie titles and the values are metric values.
             Sorted by metric descendingly.
             """
-            return collections.OrderedDict()
+            dist_movies = {}
+            for x in self.ratings.data:
+                dist_movies[self.movies[x[1]]] = dist_movies.setdefault(self.movies[x[1]], []) + [float(x[2])]
+
+            if metric == "average":
+                average_ratings = sorted(map(lambda x: (x[0], sum(x[1]) / len(x[1])), dist_movies.items()),
+                                         key=lambda y: -y[1])[:n]
+                return collections.OrderedDict(average_ratings)
+            else:
+
+                def get_median(x: list):
+                    if len(x) % 2:
+                        return x[len(x) // 2]
+                    else:
+                        return (x[len(x) // 2] + x[(len(x) + 1) // 2]) / 2
+
+                median_ratings = sorted(list(map(lambda x: (x[0], get_median(x[1])), dict(
+                    map(lambda x: (x[0], list(sorted(x[1]))), dist_movies.items())).items())), key=lambda x: -x[1])[:n]
+                return collections.OrderedDict(median_ratings)
 
         def top_controversial(self, n):
             """
@@ -68,55 +107,83 @@ class Ratings(object):
             Sorted by variances descendingly.
             """
 
-            def get_variance(movie_id):
-                movie_ratings = [float(x[2]) for x in list(filter(lambda x: x[1] == movie_id, self.outer.data))]
-                mean = sum(movie_ratings) / len(movie_ratings)
-                return sum([(x - mean) ** 2 for x in movie_ratings]) / len(movie_ratings)
+            def get_variance(ratings: list):
+                mean = sum(ratings) / len(ratings)
+                if len(ratings) > 1:
+                    return sum(map(lambda x: (x - mean) * (x - mean), ratings)) / (len(ratings) - 1)
+                else:
+                    return ratings[0]
 
-            set_movies = set(map(lambda x: x[1], self.outer.data))
-            top_movies = collections.Counter({movie: get_variance(movie) for movie in set_movies})
-            return collections.OrderedDict(top_movies.most_common(n))
+            dist_movies = {}
+            for x in self.ratings.data:
+                dist_movies[self.movies[x[1]]] = dist_movies.setdefault(self.movies[x[1]], []) + [float(x[2])]
+            movie_variances = sorted(map(lambda x: (x[0], get_variance(x[1])), dist_movies.items()),
+                                         key=lambda y: -y[1])[:n]
+            return collections.OrderedDict(movie_variances)
 
     class Users(object):
-        def __init__(self, outer):
-            self.outer = outer
+        def __init__(self, ratings):
+            self.ratings = ratings
 
         def top_valuers(self):
             """
             The method returns the distribution of users by the number of ratings made by them.
             It is a dict where the keys are users and the values are number of ratings
+            Sorted by descending order
             """
-            valuers = collections.Counter(map(lambda x: x[0], self.outer.data))
+            valuers = collections.Counter(map(lambda x: x[0], self.ratings.data)).most_common()
             return collections.OrderedDict(valuers)
 
         def valuers_with_ratings(self, metric="average"):
             """
             The method returns the distribution of users by average or median ratings made by them.
             It is a dict where the keys are users and the values are metric values.
+            Sorted by descending order
             """
-            return collections.OrderedDict()
+            dist_valuers = {}
+            for x in self.ratings.data:
+                dist_valuers[x[0]] = dist_valuers.setdefault(x[0], []) + [float(x[2])]
+
+            if metric == "average":
+                average_ratings = sorted(map(lambda x: (x[0], sum(x[1]) / len(x[1])), dist_valuers.items()), key=lambda y: -y[1])
+                return collections.OrderedDict(average_ratings)
+            else:
+
+                def get_median(x: list):
+                    if len(x) % 2:
+                        return x[len(x) // 2]
+                    else:
+                        return (x[len(x) // 2] + x[(len(x) + 1) // 2]) / 2
+
+                median_ratings = sorted(list(map(lambda x: (x[0], get_median(x[1])), dict(map(lambda x: (x[0], list(sorted(x[1]))), dist_valuers.items())).items())), key=lambda x: -x[1])
+                return collections.OrderedDict(median_ratings)
 
         def top_controversial_valuers(self, n):
             """
             The method returns top n users with the biggest variance of their ratings.
             It is a dict where the keys are users and the values are variances
+            Sorted by descending order
             """
 
-            def get_variance(user_id):
-                user_ratings = [float(x[2]) for x in list(filter(lambda x: x[0] == user_id, self.outer.data))]
-                mean = sum(user_ratings) / len(user_ratings)
-                return sum([(x - mean) ** 2 for x in user_ratings]) / len(user_ratings)
+            def get_variance(ratings: list):
+                mean = sum(ratings) / len(ratings)
+                if len(ratings) > 1:
+                    return sum(map(lambda x: (x - mean) * (x - mean), ratings)) / (len(ratings) - 1)
+                else:
+                    return ratings[0]
 
-            set_users = set(map(lambda x: x[0], self.outer.data))
-            top_users = collections.Counter({user: get_variance(user) for user in set_users})
-            return collections.OrderedDict(top_users.most_common(n))
+            dist_movies = {}
+            for x in self.ratings.data:
+                dist_movies[x[0]] = dist_movies.setdefault(x[0], []) + [float(x[2])]
+            movie_variances = sorted(map(lambda x: (x[0], get_variance(x[1])), dist_movies.items()),
+                                     key=lambda y: -y[1])[:n]
+            return collections.OrderedDict(movie_variances)
 
 
 class Tags(object):
     """
     Analyzing data from tags.csv
     """
-
     def __init__(self, path):
         try:
             self.data = []
@@ -184,29 +251,29 @@ class Movies:
     Analyzing data from movies.csv
     """
 
-    def get_replaced_line(self, line, sep_old, sep_new, beg_count, end_count):
-        words = line.split(sep_old)
-        l_new = ""
-        for w_count in range(len(words)):
-            l_new += words[w_count]
-            if w_count != len(words) - 1:
-                if (w_count < beg_count) or (w_count + 1 >= len(words) - end_count):
-                    l_new += sep_new
-                else:
-                    l_new += sep_old
-        return l_new
-
-    def get_generator_list_lines(self, file_name):
-        with open(file_name, 'r') as f:
-            f.readline()
-            for line in f:
-                yield line
-
     def __init__(self, path):
+        def get_replaced_line(line, sep_old, sep_new, beg_count, end_count):
+            words = line.split(sep_old)
+            l_new = ""
+            for w_count in range(len(words)):
+                l_new += words[w_count]
+                if w_count != len(words) - 1:
+                    if (w_count < beg_count) or (w_count + 1 >= len(words) - end_count):
+                        l_new += sep_new
+                    else:
+                        l_new += sep_old
+            return l_new
+
+        def get_generator_list_lines(file_name):
+            with open(file_name, 'r') as f:
+                f.readline()
+                for line in f:
+                    yield line
+
         try:
             self.data = []
-            for line in self.get_generator_list_lines(path):
-                ss = self.get_replaced_line(line, ',', '\t', 1, 1)
+            for line in get_generator_list_lines(path):
+                ss = get_replaced_line(line, ',', '\t', 1, 1)
                 new_elem = list(map(lambda x: x, ss.split('\t')))
                 new_elem[2] = list(map(lambda x: x.strip(), new_elem[2].split('|')))
                 self.data.append(new_elem)
@@ -214,18 +281,6 @@ class Movies:
             print(f"There is no file {path}")
         except Exception:
             print(sys.int_info)
-
-        """
-
-        try:
-            with open(path, "r") as tags_file:
-                tags_data = []
-                tags_file.readline()
-                for line in tags_file:
-                    new_elem = list(map(lambda x: x, line.split(',')))
-                    new_elem[2] = list(map(lambda x: x, new_elem[2].split('|')))
-                    tags_data.append(new_elem)
-        """
 
     def dist_by_release(self):
         """
@@ -361,10 +416,21 @@ class Links:
 
 
 if __name__ == "__main__":
-    test = Movies("movies.csv")
-    print(test.dist_by_release())
-    print(test.most_genres(10))
-    print(test.dist_by_genres())
+    """
+    test = Ratings("test_ratings.csv")
+    print("Ok")
+    a = test.Movies("movies.csv", test)
+    print(a.dist_by_year())
+    print(a.dist_by_rating())
+    print(a.top_by_num_of_ratings(10))
+    print(a.top_controversial(100))
+    print(a.top_by_ratings(5))
+    b = test.Users(test)
+    print(b.top_valuers())
+    print(b.valuers_with_ratings())
+    print(b.valuers_with_ratings("median"))
+    print(b.top_controversial_valuers(100))
+    """
 
     """
     Проверено, работает
