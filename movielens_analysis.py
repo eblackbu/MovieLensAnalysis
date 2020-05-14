@@ -12,13 +12,12 @@ class Ratings(object):
     """
 
     def __init__(self, spath):
-
         def get_generator_list_lines(file_name):
             with open(file_name, 'r') as f:
                 f.readline()
                 for line in f:
                     yield line
-
+                    
         try:
             self.data = []
             print(os.path.exists(spath))
@@ -31,13 +30,13 @@ class Ratings(object):
 
     class Movies(object):
         def __init__(self, path, ratings):
-
+            
             def get_generator_list_lines(file_name):
                 with open(file_name, 'r') as f:
                     f.readline()
                     for line in f:
                         yield line
-
+                        
             self.ratings = ratings
             try:
                 self.movies = {}
@@ -71,8 +70,14 @@ class Ratings(object):
             Sorted by numbers descendingly.
             """
             top_movies = collections.Counter([record[1] for record in self.ratings.data]).most_common(n)
-            top_movies = collections.OrderedDict(map(lambda x: (self.movies[x[0]], x[1]), top_movies))
-            return collections.OrderedDict(top_movies)
+            ordered_top_movies = []
+            for x in top_movies:
+                try:
+                    ordered_top_movies.append((self.movies[x[0]], x[1]))
+                except KeyError:
+                    continue
+            #top_movies = collections.OrderedDict(map(lambda x: (self.movies[x[0]], x[1]), top_movies))
+            return collections.OrderedDict(ordered_top_movies)
 
         def top_by_ratings(self, n, metric="average"):
             """
@@ -82,7 +87,10 @@ class Ratings(object):
             """
             dist_movies = {}
             for x in self.ratings.data:
-                dist_movies[self.movies[x[1]]] = dist_movies.setdefault(self.movies[x[1]], []) + [float(x[2])]
+                try:
+                    dist_movies[self.movies[x[1]]] = dist_movies.setdefault(self.movies[x[1]], []) + [float(x[2])]
+                except KeyError:
+                    continue
 
             if metric == "average":
                 average_ratings = sorted(map(lambda x: (x[0], sum(x[1]) / len(x[1])), dist_movies.items()),
@@ -116,7 +124,10 @@ class Ratings(object):
 
             dist_movies = {}
             for x in self.ratings.data:
-                dist_movies[self.movies[x[1]]] = dist_movies.setdefault(self.movies[x[1]], []) + [float(x[2])]
+                try:
+                    dist_movies[self.movies[x[1]]] = dist_movies.setdefault(self.movies[x[1]], []) + [float(x[2])]
+                except KeyError:
+                    continue
             movie_variances = sorted(map(lambda x: (x[0], get_variance(x[1])), dist_movies.items()),
                                          key=lambda y: -y[1])[:n]
             return collections.OrderedDict(movie_variances)
@@ -431,8 +442,9 @@ if __name__ == "__main__":
 
     """
     Проверено, работает
+    """
     test = Ratings("ratings.csv")
-    m = test.Movies(test)
+    m = test.Movies("test_movies.csv", test)
     u = test.Users(test)
     print('Ratings:')
     print('\tdist_by_year:         {}, type is {}'.format(m.dist_by_year(), type(m.dist_by_year()).__name__))
@@ -443,10 +455,11 @@ if __name__ == "__main__":
     print('\ttop_valuers:          {}, type is {}'.format(u.top_valuers(), type(u.top_valuers()).__name__))
     print('\tvaluers_with_ratings: {}, type is {}'.format(u.valuers_with_ratings(), type(u.valuers_with_ratings()).__name__))
     print('\ttop_controversial_valuers: {}, type is {}'.format(u.top_controversial_valuers(5), type(u.top_controversial_valuers(5)).__name__))
-    """
+    
 
     """
     Проверено, работает
+    """
     test = Tags("tags.csv")
     print('Tags:')
     print('\tmost_words:             {}, type is {}'.format(test.most_words(10), type(test.most_words(10)).__name__))
@@ -454,25 +467,25 @@ if __name__ == "__main__":
     print('\tmost_words_and_longest: {}, type is {}'.format(test.most_words_and_longest(10), type(test.most_words_and_longest(10)).__name__))
     print('\tmost_popular:           {}, type is {}'.format(test.most_popular(10), type(test.most_popular(10)).__name__))
     print('\ttags_with:              {}, type is {}'.format(test.tags_with('Osc'), type(test.tags_with("Osc")).__name__))
-    """
+    
 
     """
     Не работает:
     release_years = collections.Counter(map(lambda x: re.search(r'\((\d{4})\)', x[1]).group(1), self.data))
     AttributeError: 'NoneType' object has no attribute 'group'
-    
+    """
     test = Movies("movies.csv")
     print('Movies:')
     print('\tdist_by_release:        {}, type is {}'.format(test.dist_by_release(), type(test.dist_by_release()).__name__))
     print('\tdist_by_genres:         {}, type is {}'.format(test.dist_by_genres(), type(test.dist_by_genres()).__name__))
     print('\tmost_genres:            {}, type is {}'.format(test.most_genres(5), type(test.most_genres(5)).__name__))
-    """
-
+    
+    
     """
     Не работает:
     title = soup.find("div", attrs={"class": "title_wrapper"}).find("h1").text
     AttributeError: 'NoneType' object has no attribute 'find'
-
+    """
     test = Links("links.csv")
     print('Movies:')
     print('\tget_imdb:            {}, type is {}'.format(test.get_imdb(), type(test.get_imdb()).__name__))
@@ -481,4 +494,4 @@ if __name__ == "__main__":
     print('\tmost_profitable:     {}, type is {}'.format(test.most_profitable(5), type(test.most_profitable(5)).__name__))
     print('\tlongest:             {}, type is {}'.format(test.longest(5), type(test.longest(5)).__name__))
     print('\ttop_cost_per_minute: {}, type is {}'.format(test.top_cost_per_minute(5), type(test.top_cost_per_minute(5)).__name__))
-    """
+    
