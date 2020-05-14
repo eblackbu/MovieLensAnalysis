@@ -11,7 +11,7 @@ from movielens_analysis import Ratings, Tags, Movies, Links
 @pytest.mark.parametrize('ret_type', [[OrderedDict, OrderedDict, OrderedDict, OrderedDict, OrderedDict, OrderedDict, OrderedDict, OrderedDict]])
 def test_ratings_class_type_error(ratings_file_name, n, ret_type):
 	parent_class = Ratings(ratings_file_name)
-	movies_class = parent_class.Movies(parent_class)
+	movies_class = parent_class.Movies("movies.csv", parent_class)
 	users_class = parent_class.Users(parent_class)
 	method_ret_list = []
 	method_ret_list.append(type(movies_class.dist_by_year()))
@@ -42,7 +42,7 @@ def test_tags_class_type_error(tags_file_name, n, word, ret_type):
 	print(method_ret_list)
 	assert len(set(method_ret_list) ^ set(ret_type)) == 0
 
-"""
+
 @pytest.mark.parametrize('movies_file_name', ['movies.csv'])
 @pytest.mark.parametrize('n', [10])
 #@pytest.mark.parametrize('ret_type', [[dict, dict, dict]])
@@ -59,12 +59,12 @@ def test_movies_class_type_error(movies_file_name, n, ret_type):
 @pytest.mark.parametrize('links_file_name', ['links.csv'])
 @pytest.mark.parametrize('list_of_fields', ['movieId', 'field1', 'field2', 'field3'])
 @pytest.mark.parametrize('n', [10])
-@pytest.mark.parametrize('ret_type', [[list, dict, dict, dict, dict, dict]])
-#@pytest.mark.parametrize('ret_type', [[list, OrderedDict, OrderedDict, OrderedDict, OrderedDict, OrderedDict]])
+#@pytest.mark.parametrize('ret_type', [[list, dict, dict, dict, dict, dict]])
+@pytest.mark.parametrize('ret_type', [[list, OrderedDict, OrderedDict, OrderedDict, OrderedDict, OrderedDict]])
 def test_links_class_type_error(links_file_name, list_of_fields, n, ret_type):
 	links_class = Links(links_file_name)
 	method_ret_list = []
-	method_ret_list.append(type(links_class.get_imdb(list_of_fields)))
+	method_ret_list.append(type(links_class.get_imdb()))
 	method_ret_list.append(type(links_class.top_directors(n)))
 	method_ret_list.append(type(links_class.most_expensive(n)))
 	method_ret_list.append(type(links_class.most_profitable(n)))
@@ -72,7 +72,7 @@ def test_links_class_type_error(links_file_name, list_of_fields, n, ret_type):
 	method_ret_list.append(type(links_class.top_cost_per_minute(n)))
 #	print(method_ret_list)
 	assert len(set(method_ret_list) ^ set(ret_type)) == 0
-"""
+
 
 # to check if the returned values are sorted
 # -----------------------------------------------------
@@ -104,7 +104,7 @@ def check_sort_data_by_len(data_list, sort_type=1):
 @pytest.mark.parametrize('n', [10])
 def test_ratings_class_sorted_error(ratings_file_name, n):
 	parent_class = Ratings(ratings_file_name)
-	movies_class = parent_class.Movies(parent_class)
+	movies_class = parent_class.Movies("movies.csv", parent_class)
 	users_class = parent_class.Users(parent_class)
 	if not check_sort_data(list(movies_class.dist_by_year().keys())):
 		assert False
@@ -151,7 +151,7 @@ def test_movies_class_sorted_error(movies_file_name, n):
 def test_movies_class_sorted_error(links_file_name, n, list_of_fields):
 	links_class = Links(links_file_name)
 	# todo: get_imdb() возвращает список списков, нужно сортировать по первому подэлементу - проверить!!!
-	if not check_sort_data(links_class.get_imdb(list_of_fields), sort_type=2):
+	if not check_sort_data(links_class.get_imdb(), sort_type=2):
 		assert False
 	if not check_sort_data_by_len(list(links_class.top_directors(n).values()), sort_type=2):
 		assert False
@@ -196,7 +196,7 @@ def test_tags_class_correct_list_error(tags_file_name, n, word):
 @pytest.mark.parametrize('list_of_fields', [['', '', '' '',]])
 def test_movies_class_correct_list_error(links_file_name, n, list_of_fields):
 	links_class = Links(links_file_name)
-	if not check_sort_data(links_class.get_imdb(list_of_fields), list):
+	if not check_sort_data(links_class.get_imdb(), list):
 		assert False
 
 	assert True

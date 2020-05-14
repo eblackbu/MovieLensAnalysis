@@ -62,7 +62,7 @@ class Ratings(object):
             Sorted by ratings ascendingly.
             """
             ratings_distribution = collections.Counter([record[2] for record in self.ratings.data]).most_common()
-            return collections.OrderedDict(reversed(ratings_distribution))
+            return collections.OrderedDict(sorted(list(ratings_distribution), key=lambda x: x[0]))
 
         def top_by_num_of_ratings(self, n):
             """
@@ -220,7 +220,7 @@ class Tags(object):
     def most_words_and_longest(self, n):
         """
         The method returns the intersection between top n tags with most words inside and top n longest tags in terms of the number of characters.
-        It is a liist of the tags.
+        It is a list of the tags.
         """
         longest_tags = list(sorted(set(map(lambda x: x[2], self.data)), key=lambda x: -len(x)))[:n]
         most_words_tags = list(self.most_words(n))[:n]
@@ -352,8 +352,11 @@ class Links:
                                              attrs={"class": "inline"}).next_sibling)
                 except AttributeError:
                     gross = '0'
-                runtime = details.find("h4", text=re.compile('Runtime:'), attrs={"class": "inline"}).findParent().find(
-                    "time").text
+                try:
+                    runtime = details.find("h4", text=re.compile('Runtime:'), attrs={"class": "inline"}).findParent().find(
+                        "time").text
+                except AttributeError:
+                    runtime = '1 min'
                 self.data.append([movie_id,
                                   title[:title.find('\xa0')],
                                   director[director.rfind('\n'):].strip(),
@@ -369,8 +372,7 @@ class Links:
         [movieId, movie Title, Director, Budget, Cumulative Worldwide Gross, Runtime]
         Sorted by movieId
         """
-        self.data.sort(key=lambda x: x[0])
-        return self.data
+        return list(sorted(self.data, key=lambda x: int(x[0])))
 
     def top_directors(self, n):
         """
@@ -378,14 +380,14 @@ class Links:
         Sorted by numbers in descending order.
         """
         directors = collections.Counter(map(lambda x: x[2], self.data))
-        return dict(directors.most_common(n))
+        return collections.OrderedDict(directors.most_common(n))
 
     def most_expensive(self, n):
         """
         The method returns a dict with top n movies where the keys are movie titles and the values are their budgets.
         Sorted by budgets in descending order.
         """
-        budgets = {x[1]: x[3] for x in sorted(self.data, key=lambda x: -int(x[3]))[:n]}
+        budgets = collections.OrderedDict({x[1]: x[3] for x in sorted(self.data, key=lambda x: -int(x[3]))[:n]})
         return budgets
 
     def most_profitable(self, n):
@@ -393,7 +395,7 @@ class Links:
         The method returns a dict with top n movies where the keys are movie titles and the values are their budgets.
         Sorted by budgets in descending order.
         """
-        profits = {x[1]: int(x[4]) - int(x[3]) for x in sorted(self.data, key=lambda x: int(x[3]) - int(x[4]))[:n]}
+        profits = collections.OrderedDict({x[1]: int(x[4]) - int(x[3]) for x in sorted(self.data, key=lambda x: int(x[3]) - int(x[4]))[:n]})
         return profits
 
     def longest(self, n):
@@ -402,7 +404,7 @@ class Links:
         Sorted by runtime in descending order.
         """
         a = self.data[0][5][:self.data[0][5].find(' ')]
-        runtimes = {x[1]: x[5] for x in sorted(self.data, key=lambda x: -int(x[5][:-4]))[:n]}
+        runtimes = collections.OrderedDict({x[1]: x[5] for x in sorted(self.data, key=lambda x: -int(x[5][:-4]))[:n]})
         return runtimes
 
     def top_cost_per_minute(self, n):
@@ -410,26 +412,21 @@ class Links:
         The method returns a dict with top n movies where the keys are movie titles and the values are the budgets divided by their runtime.
         Sorted by the division in descending order.
         """
-        costs = {x[1]: int(x[3]) / int(x[5][:-4]) for x in
-                 sorted(self.data, key=lambda x: -(int(x[3]) / int(x[5][:-4])))[:n]}
+        costs = collections.OrderedDict({x[1]: int(x[3]) / int(x[5][:-4]) for x in
+                 sorted(self.data, key=lambda x: -(int(x[3]) / int(x[5][:-4])))[:n]})
         return costs
 
 
 if __name__ == "__main__":
     """
-    test = Ratings("test_ratings.csv")
+    test = Links("links.csv")
     print("Ok")
-    a = test.Movies("movies.csv", test)
-    print(a.dist_by_year())
-    print(a.dist_by_rating())
-    print(a.top_by_num_of_ratings(10))
-    print(a.top_controversial(100))
-    print(a.top_by_ratings(5))
-    b = test.Users(test)
-    print(b.top_valuers())
-    print(b.valuers_with_ratings())
-    print(b.valuers_with_ratings("median"))
-    print(b.top_controversial_valuers(100))
+    print(test.get_imdb())
+    print(test.top_directors(5))
+    print(test.longest(5))
+    print(test.top_cost_per_minute(5))
+    print(test.most_profitable(5))
+    print(test.most_expensive(5))
     """
 
     """
